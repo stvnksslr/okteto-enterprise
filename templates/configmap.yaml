@@ -11,6 +11,8 @@ metadata:
   name: "{{ include "okteto.fullname" . }}"
   namespace: {{ .Release.Namespace }}
 data:
+  "OKTETO_CONFIGMAP_NAME": "{{ include "okteto.fullname" . }}"
+  "OKTETO_SERVICE_ACCOUNT_NAME": "{{ include "okteto.fullname" . }}"
   "OKTETO_VERSION": "{{ .Chart.Version }}"
   "OKTETO_CLOUD_PROVIDER": "{{ include "okteto.cloudProvider" . }}"
   "OKTETO_AUTH_PROVIDER": "{{ include "okteto.authProvider" . }}"
@@ -27,6 +29,7 @@ data:
   "OKTETO_BASE_DOMAIN": "{{ .Values.subdomain }}"
   "OKTETO_DEV_CLUSTER_ROLE": "{{ default (include "okteto.devclusterrole" .) .Values.clusterRole }}"
   "OKTETO_SHOW_VOLUMES_ENABLED": "{{ .Values.unsupported.showVolumes }}"
+  "OKTETO_FORCE_PODS_IN_VOLUME_ZONE": "{{ .Values.unsupported.forcePodsInVolumeZone }}"
   "OKTETO_POD_SECURITY_POLICY": "{{ include "okteto.fullname" . }}-restrictive"
   "OKTETO_PUBLIC_URL": "{{ include "okteto.public" . }}"
   "OKTETO_USER_DEFINED_NAMESPACES": "{{ .Values.userDefinedNamespaces }}"
@@ -38,7 +41,7 @@ data:
   "OKTETO_NAMESPACE_LABELS": {{ .Values.namespace.labels | toJson | quote }}
   "OKTETO_LOADBALANCER_CONVERSION_ENABLED": "{{ .Values.convertLoadBalancedServices.enabled }}"
   "OKTETO_COOKIE_HASH": "{{ .Values.cookie.hash }}"
-  "OKTETO_DEFAULT_BACKEND": "{{ .Release.Name }}-ingress-nginx-defaultbackend"
+  "OKTETO_DEFAULT_BACKEND": "{{ .Release.Name }}-ingress-nginx-defaultbackend.{{ .Release.Namespace }}"
   "OKTETO_BIN_IMAGE": "{{ .Values.backend.bin.image }}"
   "OKTETO_INSTALLER_IMAGE": "{{ .Values.backend.installer.image }}"
 {{- if .Values.wildcardCertificate.privateCA.enabled }}
@@ -48,6 +51,7 @@ data:
 {{- if .Values.telemetry.token }}
   "OKTETO_TELEMETRY_TOKEN": "{{ .Values.telemetry.token }}"
 {{- end }}
+  "OKTETO_TELEMETRY_ENABLED": "{{ .Values.telemetry.enabled }}"
 {{- if and .Values.unsupported.injectDockerconfigInGitDeploys .Values.privateRegistry }}
   "OKTETO_DOCKERCONFIG_SECRET_NAME": "{{ include "okteto.fullname" . }}-dockerconfig"
 {{- end}}
@@ -202,8 +206,8 @@ data:
   "OKTETO_MAX_PERSONAL_ACCESS_TOKEN": "{{ .Values.store.personalAccessToken.max }}"
   "OKTETO_GCP_STORE_ENABLED": "{{ .Values.store.provider.gcp.enabled }}"
   "OKTETO_GIT_SSH_USER": "{{ .Values.installer.gitSSHUser }}"
-  "OKTETO_EXTERNAL_ACCOUNT_MINIMUM_CREATION_DAYS": "{{ .Values.unsupported.singupRestrictions.externalAccountMinimumCreationDays }}"
-  "OKTETO_BANNED_SIGNUP_EMAIL_DOMAINS": "{{ include "okteto.joinListWithComma" .Values.unsupported.singupRestrictions.bannedEmailDomains }}"
+  "OKTETO_EXTERNAL_ACCOUNT_MINIMUM_CREATION_DAYS": "{{ .Values.unsupported.signupRestrictions.externalAccountMinimumCreationDays }}"
+  "OKTETO_BANNED_SIGNUP_EMAIL_DOMAINS": "{{ include "okteto.joinListWithComma" .Values.unsupported.signupRestrictions.bannedEmailDomains }}"
   "OKTETO_DEV_STORAGE_CLASS_ENABLED": "{{ .Values.devStorageClass.enabled }}"
 {{- if .Values.devStorageClass.enabled }}
   "OKTETO_DEFAULT_DEV_STORAGE_CLASS": "{{ .Values.devStorageClass.storageClass }}"
@@ -218,4 +222,14 @@ data:
   "OKTETO_GIT_INSTALLER_ACTIVE_DEADLINE_SECONDS": "{{ .Values.installer.activeDeadlineSeconds }}"
   "OKTETO_AUTO_ADMIN_ENABLED": "{{ .Values.autoAdmin.enabled }}"
   "OKTETO_SCALE_DOWN_PERSISTENT_RESOURCES": "{{ .Values.unsupported.scaleDownPersistentResources }}"
-  "OKTETO_STREAMING_LOGS_ENABLED_RESOURCES": "{{ .Values.streamingLogs.enabledResources }}"
+  "OKTETO_NAMESPACE_DESTROY_ALL_JOB_IMAGE": "{{ .Values.backend.image.registry }}:{{ .Values.backend.image.tag }}"
+  "OKTETO_NAMESPACE_DESTROY_ALL_ENABLED": "{{ .Values.namespaceDestroyAll.enabled }}"
+{{- if .Values.unsupported.metrics.enabled}}
+  "OKTETO_METRICS_URL": "{{ .Values.unsupported.metrics.url }}"
+  "OKTETO_METRICS_HEADERS": {{ .Values.unsupported.metrics.headers | toJson | b64enc | quote }}
+  "OKTETO_METRICS_EVENTS": {{ .Values.unsupported.metrics.events | toJson | b64enc | quote }}
+{{- end}}
+  "OKTETO_LOGS_BY_STAGE_ENABLED": "{{ .Values.unsupported.logsByStage.enabled }}"
+  "OKTETO_TEAMS_ENABLED": "{{ .Values.unsupported.teams.enabled }}"
+  "OKTETO_USER_SETTINGS_ENABLED": "{{ .Values.unsupported.userSettings.enabled }}"
+  "OKTETO_AUTOMATIC_PREVIEWS_ENABLED": "{{ .Values.unsupported.automaticPreviews.enabled }}"

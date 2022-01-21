@@ -113,7 +113,11 @@ spec:
               - --addr
               - "tcp://local-buildkitd.{{ .Values.subdomain }}:1234"
               - --tlscacert
+       {{- if .Values.wildcardCertificate.privateCA.enabled }}
+              - /etc/ssl/certs/okteto-private-ca.crt
+       {{- else }}
               - /etc/ssl/certs/ca-certificates.crt
+       {{- end }}
               - debug
               - workers
           initialDelaySeconds: 5

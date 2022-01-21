@@ -73,24 +73,6 @@ webhooks:
     namespaceSelector:
       matchLabels:
         dev.okteto.com: "true"
-  - name: event.webhook.okteto.com
-    admissionReviewVersions: ["v1beta1"]
-    failurePolicy: Ignore
-    sideEffects: NoneOnDryRun
-    clientConfig:
-      service:
-        name: "{{ include "okteto.webhook" . }}"
-        path: "/mutate/event"
-        namespace: "{{ .Release.Namespace }}"
-      caBundle:
-    rules:
-      - operations: [ "CREATE", "UPDATE"]
-        apiGroups: [""]
-        apiVersions: ["v1"]
-        resources: ["events"]
-    namespaceSelector:
-      matchLabels:
-        dev.okteto.com: "true"
   - name: statefulset.webhook.okteto.com
     admissionReviewVersions: ["v1beta1"]
     failurePolicy: Fail
@@ -221,21 +203,57 @@ webhooks:
     namespaceSelector:
       matchLabels:
         dev.okteto.com: "true"
-  - name: deployed-by.webhook.okteto.com
+  - name: config-map.webhook.okteto.com
     admissionReviewVersions: ["v1beta1"]
     failurePolicy: Ignore
     sideEffects: NoneOnDryRun
     clientConfig:
       service:
         name: "{{ include "okteto.webhook" . }}"
-        path: "/mutate/deployed-by"
+        path: "/mutate/config-map"
         namespace: "{{ .Release.Namespace }}"
       caBundle:
     rules:
-      - operations: [ "CREATE", "UPDATE" ]
-        apiGroups: [ "*" ]
-        apiVersions: [ "*" ]
-        resources: [ "*" ]
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["configmaps"]
+    namespaceSelector:
+      matchLabels:
+        dev.okteto.com: "true"
+  - name: namespace.webhook.okteto.com
+    admissionReviewVersions: ["v1beta1"]
+    failurePolicy: Ignore
+    sideEffects: NoneOnDryRun
+    clientConfig:
+      service:
+        name: "{{ include "okteto.webhook" . }}"
+        path: "/mutate/namespace"
+        namespace: "{{ .Release.Namespace }}"
+      caBundle:
+    rules:
+      - operations: ["UPDATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["namespaces"]
+    namespaceSelector:
+      matchLabels:
+        dev.okteto.com: "true"
+  - name: daemonset.webhook.okteto.com
+    admissionReviewVersions: ["v1"]
+    failurePolicy: Ignore
+    sideEffects: NoneOnDryRun
+    clientConfig:
+      service:
+        name: "{{ include "okteto.webhook" . }}"
+        path: "/mutate/daemonset"
+        namespace: "{{ .Release.Namespace }}"
+      caBundle:
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        resources: ["daemonsets"]
     namespaceSelector:
       matchLabels:
         dev.okteto.com: "true"

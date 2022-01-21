@@ -23,7 +23,9 @@ spec:
   loadBalancerIP: {{ .Values.buildkit.service.loadBalancerIP }}
   {{- end }}
   {{- if .Values.buildkit.service.sessionAffinity }}
+    {{- if not .Values.cloud.provider.aws.enabled }}
   sessionAffinity: {{ .Values.buildkit.service.sessionAffinity }}
+    {{- end }}
   {{- end }}
   ports:
     - port: 1234

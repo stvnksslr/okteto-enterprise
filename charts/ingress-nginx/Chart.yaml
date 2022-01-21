@@ -1,10 +1,9 @@
 annotations:
   artifacthub.io/changes: |
-    - Downgrade NGINX to v1.19.9
-    - Update Base Image to alpine 3.14.2
+    - use controller v1.1.0
   artifacthub.io/prerelease: "false"
 apiVersion: v2
-appVersion: 1.0.1
+appVersion: 1.1.0
 description: Ingress controller for Kubernetes using NGINX as a reverse proxy and
   load balancer
 home: https://github.com/kubernetes/ingress-nginx
@@ -19,4 +18,4 @@ name: ingress-nginx
 sources:
 - https://github.com/kubernetes/ingress-nginx
 type: application
-version: 4.0.2
+version: 4.0.11

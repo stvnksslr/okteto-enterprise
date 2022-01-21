@@ -24,7 +24,7 @@ You can retrieve the External IP by running:
 - "{{ $buildkit }}"
 
 You can retrieve the External IP by running:
-    kubectl get service -l=app.kubernetes.io/instance=pablo,app.kubernetes.io/component=buildkit --namespace={{ .Release.Namespace }}
+    kubectl get service -l=app.kubernetes.io/instance=={{ .Release.Name }},app.kubernetes.io/component=buildkit --namespace={{ .Release.Namespace }}
 
 3. Once you create both DNS entries you can access your Okteto Enterprise instance at this URL:
 https://{{ $public }}

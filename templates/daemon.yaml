@@ -1,5 +1,4 @@
 {{- if eq (include "okteto.installDaemonset" .) "true" }}
-{{- if not .Values.daemonset.useLegacy }}
 {{- $registryUrl :=  include "okteto.registry"  . }}
 apiVersion: apps/v1
 kind: DaemonSet
@@ -12,6 +11,8 @@ metadata:
     app.kubernetes.io/part-of: "okteto"
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    secret.reloader.stakater.com/reload: "{{ include "okteto.fullname" . }}-dockerconfig-root"
 spec:
   selector:
     matchLabels:
@@ -80,6 +81,7 @@ spec:
       containers:
       - name: daemon
         image: {{ .Values.daemonset.image }}
+        imagePullPolicy: {{ .Values.pullPolicy }}
         securityContext:
           privileged: true
         env:
@@ -91,8 +93,8 @@ spec:
             value: "{{ $registryUrl }}"
           - name: PRIVATE_REGISTRY_CREDENTIALS_DISABLED
             value: "{{ not .Values.privateRegistry }}"
-          - name: PRIVATE_REGISTRY_CREDENTIALS_ROOT_SOURCE_PATH
-            value: "/root/.docker/config.json"
+          - name: PRIVATE_REGISTRY_CREDENTIALS_ROOT_SECRET_NAME
+            value: "{{ include "okteto.fullname" . }}-dockerconfig-root"
           - name: PRIVATE_REGISTRY_CREDENTIALS_DESTINATION_PATH
             value: "/var/lib/kubelet/config.json"
           - name: PRIVATE_REGISTRY_CREDENTIALS_SECRET_NAME
@@ -109,14 +111,28 @@ spec:
             value: "true"
           - name: COPY_CLOUDBIN_DISABLED
             value: "true"
+          - name: CHECK_CNI_PLUGIN_DISABLED
+            value: "{{ not .Values.checkCNIPodHealth.enabled }}"
+          - name: CHECK_CNI_PLUGIN_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          {{- if .Values.checkCNIPodHealth.enabled }}
+          - name: CHECK_CNI_PLUGIN_RESTART_COUNT_THRESHOLD
+            value: "{{ .Values.checkCNIPodHealth.restartCountThreshold }}"
+          - name: CHECK_CNI_PLUGIN_SLACK_WEBHOOK
+            value: "{{ .Values.checkCNIPodHealth.slackWebhook }}"
+          - name: CHECK_CNI_PLUGIN_PUBLIC_DOMAIN
+            value: "{{ include "okteto.public" . }}"
+          - name: CHECK_CNI_PLUGIN_BACK_OFF_INTERNAL_IN_MINUTES
+            value: "{{ .Values.checkCNIPodHealth.backOffIntervalInMinutes }}"
+          {{- end }}
         volumeMounts:
           {{- if .Values.overrideRegistryResolution.enabled }}
           - name: hostalias
             mountPath: /etc/hosts
           {{- end }}
           {{- if .Values.privateRegistry }}
-          - name: dockerconfig-root
-            mountPath: /root/.docker
           - name: kubelet-conf
             mountPath: /var/lib/kubelet
           {{- end }}
@@ -139,10 +155,6 @@ spec:
       - name: kubelet-conf
         hostPath:
           path: /var/lib/kubelet
-      - name: dockerconfig-root
-        secret:
-          defaultMode: 420
-          secretName: "{{ include "okteto.fullname" . }}-dockerconfig-root"
       {{- end }}
       {{- if .Values.overrideRegistryResolution.enabled }}
       - name: hostalias
@@ -159,5 +171,4 @@ spec:
         hostPath:
           path: /var/run/docker.sock
       {{- end }}
-{{- end}}
 {{- end}}
